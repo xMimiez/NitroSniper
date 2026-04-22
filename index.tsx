@@ -18,6 +18,12 @@ let startTime = 0;
 let claiming = false;
 const codeQueue: string[] = [];
 
+function resetState() {
+    startTime = Date.now();
+    codeQueue.length = 0;
+    claiming = false;
+}
+
 function processQueue() {
     if (claiming || !codeQueue.length) return;
 
@@ -43,11 +49,11 @@ export default definePlugin({
     name: "NitroSniper",
     description: "Automatically redeems Nitro gift links sent in chat",
     authors: [Devs.neoarz],
+    tags: ["Chat", "Utility"],
+    searchTerms: ["nitro", "gift", "redeem", "snipe"],
 
     start() {
-        startTime = Date.now();
-        codeQueue.length = 0;
-        claiming = false;
+        resetState();
     },
 
     flux: {
@@ -64,4 +70,3 @@ export default definePlugin({
         }
     }
 });
-
