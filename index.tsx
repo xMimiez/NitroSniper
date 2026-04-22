@@ -6,13 +6,24 @@ dm @neoarz if u need help or have any questions
 https://github.com/neoarz/NitroSniper
 */
 
+import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import { Logger } from "@utils/Logger";
-import definePlugin from "@utils/types";
+import definePlugin, { OptionType } from "@utils/types";
 import { findByPropsLazy } from "@webpack";
+import { UserStore } from "@webpack/common";
 
 const logger = new Logger("NitroSniper");
 const GiftActions = findByPropsLazy("redeemGiftCode");
+
+const settings = definePluginSettings({
+    ignoreOwnGiftLinks: {
+        type: OptionType.BOOLEAN,
+        description: "Do not redeem Nitro gift links from messages sent by you.",
+        default: false,
+        restartNeeded: false
+    }
+});
 
 let startTime = 0;
 let claiming = false;
@@ -51,6 +62,7 @@ export default definePlugin({
     authors: [Devs.neoarz],
     tags: ["Chat", "Utility"],
     searchTerms: ["nitro", "gift", "redeem", "snipe"],
+    settings,
 
     start() {
         resetState();
@@ -59,6 +71,7 @@ export default definePlugin({
     flux: {
         MESSAGE_CREATE({ message }) {
             if (!message.content) return;
+            if (settings.store.ignoreOwnGiftLinks && message.author?.id === UserStore.getCurrentUser()?.id) return;
 
             const match = message.content.match(/(?:discord\.gift\/|discord\.com\/gifts?\/)([a-zA-Z0-9]{16,24})/);
             if (!match) return;
