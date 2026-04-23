@@ -6,53 +6,113 @@ dm @neoarz if u need help or have any questions
 https://github.com/neoarz/NitroSniper
 */
 
-import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import { Logger } from "@utils/Logger";
-import definePlugin, { OptionType } from "@utils/types";
+import definePlugin from "@utils/types";
+import { Message } from "@vencord/discord-types";
 import { findByPropsLazy } from "@webpack";
 import { UserStore } from "@webpack/common";
+
+import { settings } from "./settings";
+import type { ClaimRequest, FinderProfile, WebhookResult } from "./types";
+import { sendClaimWebhook } from "./webhook";
+
+const GIFT_LINK_REGEX = /(?:discord\.gift\/|discord\.com\/gifts?\/)([a-zA-Z0-9]{16,24})/;
 
 const logger = new Logger("NitroSniper");
 const GiftActions = findByPropsLazy("redeemGiftCode");
 
-const settings = definePluginSettings({
-    ignoreOwnGiftLinks: {
-        type: OptionType.BOOLEAN,
-        description: "Do not redeem Nitro gift links from messages sent by you.",
-        default: false,
-        restartNeeded: false
-    }
-});
-
 let startTime = 0;
 let claiming = false;
-const codeQueue: string[] = [];
+const claimQueue: ClaimRequest[] = [];
 
 function resetState() {
     startTime = Date.now();
-    codeQueue.length = 0;
+    claimQueue.length = 0;
     claiming = false;
 }
 
+function isOwnMessage(message: Message) {
+    return message.author?.id === UserStore.getCurrentUser()?.id;
+}
+
+function shouldSkipMessage(message: Message) {
+    return settings.store.ignoreOwnGiftLinks && isOwnMessage(message);
+}
+
+function isMessageOlderThanStart(message: Message) {
+    return new Date(message.timestamp).getTime() < startTime;
+}
+
+function extractGiftCode(content: string) {
+    return content.match(GIFT_LINK_REGEX)?.[1] ?? null;
+}
+
+function createClaimRequest(message: Message): ClaimRequest | null {
+    const code = message.content ? extractGiftCode(message.content) : null;
+    if (!code) return null;
+
+    return {
+        code,
+        authorId: message.author?.id,
+        authorName: message.author?.globalName ?? message.author?.username,
+        authorUsername: message.author?.username,
+        channelId: message.channel_id,
+        guildId: message.guild_id,
+        messageId: message.id
+    };
+}
+
+function getFinderProfile(): FinderProfile {
+    const currentUser = UserStore.getCurrentUser();
+
+    return {
+        name: currentUser?.globalName ?? currentUser?.username ?? "NitroSniper",
+        iconUrl: currentUser?.avatar
+            ? `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png?size=128`
+            : undefined
+    };
+}
+
+function notifyClaim(result: WebhookResult, request: ClaimRequest) {
+    void sendClaimWebhook(
+        settings.store.webhookUrl,
+        getFinderProfile(),
+        result,
+        request
+    ).catch(webhookError => {
+        logger.error("Failed to send NitroSniper webhook notification", webhookError);
+    });
+}
+
+function continueQueue() {
+    claiming = false;
+    processQueue();
+}
+
+function handleClaimSuccess(request: ClaimRequest) {
+    logger.log(`Successfully redeemed code: ${request.code}`);
+    notifyClaim("claimed", request);
+    continueQueue();
+}
+
+function handleClaimFailure(request: ClaimRequest, error: Error) {
+    logger.error(`Failed to redeem code: ${request.code}`, error);
+    notifyClaim("failed", request);
+    continueQueue();
+}
+
 function processQueue() {
-    if (claiming || !codeQueue.length) return;
+    if (claiming) return;
+
+    const request = claimQueue.shift();
+    if (!request) return;
 
     claiming = true;
-    const code = codeQueue.shift()!;
-
     GiftActions.redeemGiftCode({
-        code,
-        onRedeemed: () => {
-            logger.log(`Successfully redeemed code: ${code}`);
-            claiming = false;
-            processQueue();
-        },
-        onError: (err: Error) => {
-            logger.error(`Failed to redeem code: ${code}`, err);
-            claiming = false;
-            processQueue();
-        }
+        code: request.code,
+        onRedeemed: () => handleClaimSuccess(request),
+        onError: (error: Error) => handleClaimFailure(request, error)
     });
 }
 
@@ -69,16 +129,13 @@ export default definePlugin({
     },
 
     flux: {
-        MESSAGE_CREATE({ message }) {
-            if (!message.content) return;
-            if (settings.store.ignoreOwnGiftLinks && message.author?.id === UserStore.getCurrentUser()?.id) return;
+        MESSAGE_CREATE({ message }: { message: Message; }) {
+            if (!message.content || shouldSkipMessage(message) || isMessageOlderThanStart(message)) return;
 
-            const match = message.content.match(/(?:discord\.gift\/|discord\.com\/gifts?\/)([a-zA-Z0-9]{16,24})/);
-            if (!match) return;
+            const request = createClaimRequest(message);
+            if (!request) return;
 
-            if (new Date(message.timestamp).getTime() < startTime) return;
-
-            codeQueue.push(match[1]);
+            claimQueue.push(request);
             processQueue();
         }
     }
