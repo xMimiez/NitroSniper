@@ -14,7 +14,7 @@ import { findByPropsLazy } from "@webpack";
 import { UserStore } from "@webpack/common";
 
 import { settings } from "./settings";
-import type { ClaimRequest, FinderProfile, WebhookResult } from "./types";
+import type { ClaimRequest, WebhookResult } from "./types";
 import { sendClaimWebhook } from "./webhook";
 
 const GIFT_LINK_REGEX = /(?:discord\.gift\/|discord\.com\/gifts?\/)([a-zA-Z0-9]{16,24})/;
@@ -30,6 +30,10 @@ function resetState() {
     startTime = Date.now();
     claimQueue.length = 0;
     claiming = false;
+}
+
+function toError(error: unknown) {
+    return error instanceof Error ? error : new Error(String(error));
 }
 
 function isOwnMessage(message: Message) {
@@ -52,32 +56,26 @@ function createClaimRequest(message: Message): ClaimRequest | null {
     const code = message.content ? extractGiftCode(message.content) : null;
     if (!code) return null;
 
+    const authorId = message.author?.id;
+    const authorAvatar = message.author?.avatar;
+
     return {
         code,
-        authorId: message.author?.id,
+        authorId,
         authorName: message.author?.globalName ?? message.author?.username,
         authorUsername: message.author?.username,
+        authorAvatarUrl: authorId && authorAvatar
+            ? `https://cdn.discordapp.com/avatars/${authorId}/${authorAvatar}.png?size=128`
+            : undefined,
         channelId: message.channel_id,
         guildId: message.guild_id,
         messageId: message.id
     };
 }
 
-function getFinderProfile(): FinderProfile {
-    const currentUser = UserStore.getCurrentUser();
-
-    return {
-        name: currentUser?.globalName ?? currentUser?.username ?? "NitroSniper",
-        iconUrl: currentUser?.avatar
-            ? `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png?size=128`
-            : undefined
-    };
-}
-
 function notifyClaim(result: WebhookResult, request: ClaimRequest) {
     void sendClaimWebhook(
         settings.store.webhookUrl,
-        getFinderProfile(),
         result,
         request
     ).catch(webhookError => {
@@ -112,7 +110,7 @@ function processQueue() {
     GiftActions.redeemGiftCode({
         code: request.code,
         onRedeemed: () => handleClaimSuccess(request),
-        onError: (error: Error) => handleClaimFailure(request, error)
+        onError: (error: unknown) => handleClaimFailure(request, toError(error))
     });
 }
 

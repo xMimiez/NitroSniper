@@ -2,7 +2,6 @@ import type { PluginNative } from "@utils/types";
 
 import type {
     ClaimRequest,
-    FinderProfile,
     WebhookEmbed,
     WebhookField,
     WebhookPayload,
@@ -54,6 +53,10 @@ function buildMessageUrl(request: ClaimRequest) {
     return `https://discordapp.com/channels/${request.guildId ?? "@me"}/${request.channelId}/${request.messageId}`;
 }
 
+function escapeMarkdown(value: string) {
+    return value.replace(/([\\`*_{}\[\]()#+\-.!|>~])/g, "\\$1");
+}
+
 function buildAuthorField(request: ClaimRequest): WebhookField | null {
     const label = request.authorName ?? request.authorUsername ?? request.authorId;
     if (!label) return null;
@@ -61,7 +64,7 @@ function buildAuthorField(request: ClaimRequest): WebhookField | null {
     const profileUrl = buildUserProfileUrl(request.authorId);
     return {
         name: "Code sent by:",
-        value: profileUrl ? `[${label}](${profileUrl})` : label,
+        value: profileUrl ? `[${escapeMarkdown(label)}](${profileUrl})` : escapeMarkdown(label),
         inline: false
     };
 }
@@ -100,7 +103,17 @@ function getResultPresentation(result: WebhookResult) {
     }
 }
 
-function buildClaimEmbed(finder: FinderProfile, result: WebhookResult, request: ClaimRequest): WebhookEmbed {
+function buildEmbedAuthor(request: ClaimRequest) {
+    const name = request.authorName ?? request.authorUsername;
+    if (!name) return undefined;
+
+    return {
+        name,
+        icon_url: request.authorAvatarUrl
+    };
+}
+
+function buildClaimEmbed(result: WebhookResult, request: ClaimRequest): WebhookEmbed {
     const presentation = getResultPresentation(result);
 
     return {
@@ -108,10 +121,7 @@ function buildClaimEmbed(finder: FinderProfile, result: WebhookResult, request: 
         color: presentation.color,
         fields: buildClaimFields(request),
         timestamp: new Date().toISOString(),
-        author: {
-            name: finder.name,
-            icon_url: finder.iconUrl
-        },
+        author: buildEmbedAuthor(request),
         footer: {
             text: WEBHOOK_NAME
         }
@@ -132,9 +142,9 @@ function buildTestWebhookPayload(): WebhookPayload {
     ]);
 }
 
-function buildClaimWebhookPayload(finder: FinderProfile, result: WebhookResult, request: ClaimRequest): WebhookPayload {
+function buildClaimWebhookPayload(result: WebhookResult, request: ClaimRequest): WebhookPayload {
     return createPayload([
-        buildClaimEmbed(finder, result, request)
+        buildClaimEmbed(result, request)
     ]);
 }
 
@@ -170,14 +180,13 @@ async function postWebhook(url: URL, payload: WebhookPayload) {
 
 export async function sendClaimWebhook(
     webhookUrl: string,
-    finder: FinderProfile,
     result: WebhookResult,
     request: ClaimRequest
 ) {
     const url = parseWebhookUrl(webhookUrl);
     if (!url) return;
 
-    await postWebhook(url, buildClaimWebhookPayload(finder, result, request));
+    await postWebhook(url, buildClaimWebhookPayload(result, request));
 }
 
 export async function sendTestWebhook(webhookUrl: string) {

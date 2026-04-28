@@ -3,14 +3,10 @@ export interface ClaimRequest {
     authorId?: string;
     authorName?: string;
     authorUsername?: string;
+    authorAvatarUrl?: string;
     channelId?: string;
     guildId?: string;
     messageId?: string;
-}
-
-export interface FinderProfile {
-    name: string;
-    iconUrl?: string;
 }
 
 export type WebhookResult = "claimed" | "failed";

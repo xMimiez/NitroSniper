@@ -22,7 +22,7 @@ export async function sendWebhook(_: IpcMainInvokeEvent, webhookUrl: string, pay
     } catch (error) {
         return {
             status: -1,
-            data: String(error)
+            data: error instanceof Error ? error.message : String(error)
         };
     }
 }

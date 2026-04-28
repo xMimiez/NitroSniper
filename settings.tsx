@@ -4,6 +4,12 @@ import { Button, showToast, Toasts } from "@webpack/common";
 
 import { sendTestWebhook } from "./webhook";
 
+function getToastErrorMessage(error: unknown) {
+    return error instanceof Error
+        ? error.message
+        : "Failed to send test webhook.";
+}
+
 function TestWebhookButton() {
     const { webhookUrl } = settings.use(["webhookUrl"]);
     const disabled = webhookUrl.trim().length === 0;
@@ -16,8 +22,8 @@ function TestWebhookButton() {
                     .then(() => {
                         showToast("Test webhook sent successfully.", Toasts.Type.SUCCESS);
                     })
-                    .catch((error: Error) => {
-                        showToast(error.message, Toasts.Type.FAILURE);
+                    .catch((error: unknown) => {
+                        showToast(getToastErrorMessage(error), Toasts.Type.FAILURE);
                     });
             }}
         >
