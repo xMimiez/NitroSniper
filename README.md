@@ -1,8 +1,7 @@
 # NitroSniper
 
-[![Version](https://img.shields.io/badge/Version-1.1.0-5865F2)](https://github.com/neoarz/NitroSniper)
-[![Gitea](https://img.shields.io/badge/Gitea-NitroSniper-6e738d?logo=gitea&logoColor=white)](https://6969.pro/neoarz/NitroSniper)
-[![GitHub License](https://img.shields.io/github/license/neoarz/NitroSniper?color=%23e78284)](https://github.com/neoarz/NitroSniper/blob/main/LICENSE)
+[![Gitea](https://img.shields.io/badge/Gitea-NitroSniper-5865F2?logo=gitea&logoColor=white)](https://6969.pro/neoarz/NitroSniper)
+[![GitHub License](https://img.shields.io/github/license/neoarz/NitroSniper?color=%236e738d)](https://github.com/neoarz/NitroSniper/blob/main/LICENSE)
 [![Sponsor Me](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/neoarz)
 [![Status](https://img.shields.io/badge/Status-Working-73b369)](https://github.com/neoarz/NitroSniper)
 
@@ -30,4 +29,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Make a github issue if you find any bugs or have any questions or preferably dm me on discord `neoarz`.
 <br>
 <sub>If you find this project useful, consider leaving a star, would mean alot!! ❤️</sub>
-

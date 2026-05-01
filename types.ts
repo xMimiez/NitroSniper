@@ -1,3 +1,11 @@
+/*
+Made with ❤️ by neoarz
+I am not responsible for any damage caused by this plugin; use at your own risk
+Vencord does not endorse/support this plugin (Works with Equicord as well)
+dm @neoarz if u need help or have any questions
+https://github.com/neoarz/NitroSniper
+*/
+
 export interface ClaimRequest {
     code: string;
     authorId?: string;
