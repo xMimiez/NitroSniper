@@ -1,6 +1,5 @@
 # NitroSniper
 
-[![Gitea](https://img.shields.io/badge/Gitea-NitroSniper-5865F2?logo=gitea&logoColor=white)](https://6969.pro/neoarz/NitroSniper)
 [![GitHub License](https://img.shields.io/github/license/neoarz/NitroSniper?color=%236e738d)](https://github.com/neoarz/NitroSniper/blob/main/LICENSE)
 [![Sponsor Me](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/neoarz)
 [![Status](https://img.shields.io/badge/Status-Working-73b369)](https://github.com/neoarz/NitroSniper)
