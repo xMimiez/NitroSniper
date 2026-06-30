@@ -12,6 +12,7 @@ import { Message } from "@vencord/discord-types";
 import { findByPropsLazy } from "@webpack";
 import { UserStore } from "@webpack/common";
 
+import { resolveGiftType } from "./giftCode";
 import { settings } from "./settings";
 import type { ClaimRequest, WebhookResult } from "./types";
 import { sendClaimWebhook } from "./webhook";
@@ -72,11 +73,12 @@ function createClaimRequest(message: Message): ClaimRequest | null {
     };
 }
 
-function notifyClaim(result: WebhookResult, request: ClaimRequest) {
+function notifyClaim(result: WebhookResult, request: ClaimRequest, giftType: string | null) {
     void sendClaimWebhook(
         settings.store.webhookUrl,
         result,
-        request
+        request,
+        giftType
     ).catch(webhookError => {
         logger.error("Failed to send NitroSniper webhook notification", webhookError);
     });
@@ -87,15 +89,15 @@ function continueQueue() {
     processQueue();
 }
 
-function handleClaimSuccess(request: ClaimRequest) {
+function handleClaimSuccess(request: ClaimRequest, giftType: Promise<string | null>) {
     logger.log(`Successfully redeemed code: ${request.code}`);
-    notifyClaim("claimed", request);
+    void giftType.then(type => notifyClaim("claimed", request, type));
     continueQueue();
 }
 
-function handleClaimFailure(request: ClaimRequest, error: Error) {
+function handleClaimFailure(request: ClaimRequest, error: Error, giftType: Promise<string | null>) {
     logger.error(`Failed to redeem code: ${request.code}`, error);
-    notifyClaim("failed", request);
+    void giftType.then(type => notifyClaim("failed", request, type));
     continueQueue();
 }
 
@@ -106,10 +108,14 @@ function processQueue() {
     if (!request) return;
 
     claiming = true;
+    const giftType = settings.store.webhookUrl.trim()
+        ? resolveGiftType(request.code)
+        : Promise.resolve(null);
+
     GiftActions.redeemGiftCode({
         code: request.code,
-        onRedeemed: () => handleClaimSuccess(request),
-        onError: (error: unknown) => handleClaimFailure(request, toError(error))
+        onRedeemed: () => handleClaimSuccess(request, giftType),
+        onError: (error: unknown) => handleClaimFailure(request, toError(error), giftType)
     });
 }
 
