@@ -8,14 +8,14 @@ https://github.com/neoarz/NitroSniper
 */
 
 import { Logger } from "@utils/Logger";
-import  definePlugin  from "@utils/types";
+import definePlugin from "@utils/types";
 import { Message } from "vencord-discord-types";
 import { findByPropsLazy } from "@webpack";
 import { UserStore } from "@webpack/common";
 import { resolveGiftType } from "./giftCode";
 import { settings } from "./settings";
 import type { ClaimRequest, WebhookResult } from "./types";
-import { sendClaimWebhook } from "./webhook";
+import { sendClaimWebhook, sendCaptchaStatusWebhook } from "./webhook";
 
 const GIFT_LINK_REGEX = /(?:discord\.gift|discord\.com\/gifts)\/([a-zA-Z0-9]{16,24})/;
 const logger = new Logger("NitroSniper");
@@ -28,6 +28,7 @@ const claimQueue: ClaimRequest[] = [];
 const CAPTCHA_SELECTOR = "iframe[title='hCaptcha challenge']";
 let captchaCheckInterval: ReturnType<typeof setInterval> | undefined;
 let captchaLogInterval: ReturnType<typeof setInterval> | undefined;
+let captchaAlertSent = false;
 
 function resetState() {
     startTime = Date.now();
@@ -128,14 +129,27 @@ function isCaptchaVisible(): boolean {
 
 function startCaptchaLogging() {
     if (captchaLogInterval) return;
+
+    if (!captchaAlertSent && settings.store.webhookUrl.trim()) {
+        captchaAlertSent = true;
+        void sendCaptchaStatusWebhook(settings.store.webhookUrl, "detected")
+            .catch((err: unknown) => logger.error("Failed to send captcha detected webhook", err));
+    }
+
     captchaLogInterval = setInterval(() => {
-        location.reload();
+        logger.log("[CaptchaDebug] hCaptcha challenge currently visible");
     }, settings.store.captchaRefreshMs);
 }
 
 function stopCaptchaLogging() {
     if (captchaLogInterval) clearInterval(captchaLogInterval);
     captchaLogInterval = undefined;
+
+    if (captchaAlertSent && settings.store.webhookUrl.trim()) {
+        void sendCaptchaStatusWebhook(settings.store.webhookUrl, "cleared")
+            .catch((err: unknown) => logger.error("Failed to send captcha cleared webhook", err));
+    }
+    captchaAlertSent = false;
 }
 
 function startCaptchaWatcher() {
@@ -156,15 +170,16 @@ export default definePlugin({
     name: "NitroSniper",
     description: "Automatically redeems Nitro gift links sent in chat",
     authors: [
-    {
-        name: "neoarz",
-        id: 218675193592283137n
-    },
-    {
-        name: "N0_.q3",
-        id: 957164619061932045n
-    }
+        {
+            name: "neoarz",
+            id: 218675193592283137n
+        },
+        {
+            name: "N0_.q3",
+            id: 957164619061932045n
+        }
     ],
+    id: 218675193592283137n,
     tags: ["Chat", "Utility"],
     searchTerms: ["nitro", "gift", "redeem", "snipe"],
     settings,
