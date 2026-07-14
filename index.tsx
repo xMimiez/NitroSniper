@@ -130,7 +130,7 @@ function isCaptchaVisible(): boolean {
 function startCaptchaLogging() {
     if (captchaLogInterval) return;
 
-    loacation.reload();
+    location.reload();
 
     if (!captchaAlertSent && settings.store.webhookUrl.trim()) {
         captchaAlertSent = true;
