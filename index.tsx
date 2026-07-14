@@ -8,7 +8,7 @@ https://github.com/neoarz/NitroSniper
 */
 
 import { Logger } from "@utils/Logger";
-import { definePlugin } from "@utils/types";
+import  definePlugin  from "@utils/types";
 import { Message } from "vencord-discord-types";
 import { findByPropsLazy } from "@webpack";
 import { UserStore } from "@webpack/common";
