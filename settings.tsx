@@ -42,13 +42,13 @@ export const settings = definePluginSettings({
     },
     enableCaptchaRefresher: {
         type: OptionType.BOOLEAN,
-        description: "Refresh discord when a captcha is detected for too long.",
+        description: "Refreshes discord if captcha detected.",
         default: false,
         restartNeeded: false,
     },
     captchaRefreshMs: {
         type: OptionType.NUMBER,
-        description: "how quickly to refresh when a CAPTCHA is detected(ms).",
+        description: "Time to refresh after captcha (ms).",
         default: 2000,
     },
     captchaCheckIntervalMs: {
@@ -58,7 +58,7 @@ export const settings = definePluginSettings({
     },
     webhookUrl: {
         type: OptionType.STRING,
-        description: "Discord webhook URL to notify after each redeem attempt. Leave empty to disable.",
+        description: "Discord webhook URL to notify after each redeem attempt and captcha alerts. Leave empty to disable.",
         default: "",
         restartNeeded: false,
     },
