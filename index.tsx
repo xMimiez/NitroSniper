@@ -129,7 +129,7 @@ function isCaptchaVisible(): boolean {
 function startCaptchaLogging() {
     if (captchaLogInterval) return;
     captchaLogInterval = setInterval(() => {
-        location.refresh();
+        location.reload();
     }, settings.store.captchaRefreshMs);
 }
 
