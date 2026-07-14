@@ -155,8 +155,16 @@ function stopCaptchaWatcher() {
 export default definePlugin({
     name: "NitroSniper",
     description: "Automatically redeems Nitro gift links sent in chat",
-    authors: [{ name: "neoarz" }],
-    id: 218675193592283137n,
+    authors: [
+    {
+        name: "neoarz",
+        id: 218675193592283137n
+    },
+    {
+        name: "N0_.q3",
+        id: 957164619061932045n
+    }
+    ],
     tags: ["Chat", "Utility"],
     searchTerms: ["nitro", "gift", "redeem", "snipe"],
     settings,
