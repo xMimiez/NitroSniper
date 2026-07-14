@@ -130,6 +130,8 @@ function isCaptchaVisible(): boolean {
 function startCaptchaLogging() {
     if (captchaLogInterval) return;
 
+    loacation.reload();
+
     if (!captchaAlertSent && settings.store.webhookUrl.trim()) {
         captchaAlertSent = true;
         void sendCaptchaStatusWebhook(settings.store.webhookUrl, "detected")
