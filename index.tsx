@@ -27,7 +27,7 @@ const claimQueue: ClaimRequest[] = [];
 
 const CAPTCHA_SELECTOR = "iframe[title='hCaptcha challenge']";
 let captchaCheckInterval: ReturnType<typeof setInterval> | undefined;
-let captchaLogInterval: ReturnType<typeof setInterval> | undefined;
+let captchaRefreshMs: ReturnType<typeof setInterval> | undefined;
 
 function resetState() {
     startTime = Date.now();
@@ -130,7 +130,7 @@ function startCaptchaLogging() {
     if (captchaLogInterval) return;
     captchaLogInterval = setInterval(() => {
         location.refresh();
-    }, settings.store.captchaRefresherMs);
+    }, settings.store.captchaRefreshMs);
 }
 
 function stopCaptchaLogging() {
