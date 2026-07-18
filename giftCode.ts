@@ -7,6 +7,7 @@ dm @neoarz if u need help or have any questions
 https://github.com/neoarz/NitroSniper
 */
 
+
 import { Constants, RestAPI } from "@webpack/common";
 
 import type { GiftCodeResolution } from "./types";
