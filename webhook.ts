@@ -8,6 +8,7 @@ dm @neoarz if u need help or have any questions
 https://github.com/neoarz/NitroSniper
 */
 
+
 import type { PluginNative } from "@utils/types";
 
 import type {
@@ -102,7 +103,6 @@ function buildMessageField(request: ClaimRequest): WebhookField | null {
 }
 
 function formatClaimTime(ms: number) {
-    if (ms < 1000) return `${Math.round(ms)}ms`;
     return `${(ms / 1000).toFixed(2)}s`;
 }
 
@@ -180,7 +180,12 @@ function buildTestWebhookPayload(): WebhookPayload {
     ]);
 }
 
-function buildClaimWebhookPayload(result: WebhookResult, request: ClaimRequest, giftType: string | null, claimTimeMs: number | null): WebhookPayload {
+function buildClaimWebhookPayload(
+    result: WebhookResult,
+    request: ClaimRequest,
+    giftType: string | null,
+    claimTimeMs: number | null
+): WebhookPayload {
     return createPayload([
         buildClaimEmbed(result, request, giftType, claimTimeMs)
     ]);
