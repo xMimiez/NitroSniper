@@ -10,23 +10,31 @@ https://github.com/neoarz/NitroSniper
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 import { Button, showToast, Toasts } from "@webpack/common";
+
 import { sendTestWebhook } from "./webhook";
 
 function getToastErrorMessage(error: unknown) {
-    return error instanceof Error ? error.message : "Failed to send test webhook.";
+    return error instanceof Error
+        ? error.message
+        : "Failed to send test webhook.";
 }
 
 function TestWebhookButton() {
-    const webhookUrl = settings.use(["webhookUrl"]).webhookUrl;
+    const { webhookUrl } = settings.use(["webhookUrl"]);
     const disabled = webhookUrl.trim().length === 0;
+
     return (
         <Button
             disabled={disabled}
-            onClick={() =>
+            onClick={() => {
                 void sendTestWebhook(webhookUrl)
-                    .then(() => showToast("Test webhook sent successfully.", Toasts.Type.SUCCESS))
-                    .catch((error: unknown) => showToast(getToastErrorMessage(error), Toasts.Type.FAILURE))
-            }
+                    .then(() => {
+                        showToast("Test webhook sent successfully.", Toasts.Type.SUCCESS);
+                    })
+                    .catch((error: unknown) => {
+                        showToast(getToastErrorMessage(error), Toasts.Type.FAILURE);
+                    });
+            }}
         >
             Send Test Webhook
         </Button>
@@ -38,33 +46,29 @@ export const settings = definePluginSettings({
         type: OptionType.BOOLEAN,
         description: "Do not redeem Nitro gift links from messages sent by you.",
         default: false,
-        restartNeeded: false,
+        restartNeeded: false
     },
-    enableCaptchaRefresher: {
+    captchaAutoReload: {
         type: OptionType.BOOLEAN,
-        description: "Refreshes discord if captcha detected.",
-        default: false,
-        restartNeeded: false,
+        description: "Reload Discord when a captcha stays on screen for too long.",
+        default: true,
+        restartNeeded: false
     },
-    captchaRefreshMs: {
+    captchaStuckSeconds: {
         type: OptionType.NUMBER,
-        description: "Time to refresh after captcha (ms).",
-        default: 2000,
-    },
-    captchaCheckIntervalMs: {
-        type: OptionType.NUMBER,
-        description: "How often to check for a CAPTCHA on screen (ms).",
-        default: 500,
+        description: "Reload Discord after a captcha has been visible for this many seconds.",
+        default: 10,
+        restartNeeded: false
     },
     webhookUrl: {
         type: OptionType.STRING,
-        description: "Discord webhook URL to notify after each redeem attempt and captcha alerts. Leave empty to disable.",
+        description: "Discord webhook URL to notify after each redeem attempt. Leave empty to disable.",
         default: "",
-        restartNeeded: false,
+        restartNeeded: false
     },
     testWebhook: {
         type: OptionType.COMPONENT,
         description: "Send a test message to the configured webhook.",
-        component: TestWebhookButton,
-    },
+        component: TestWebhookButton
+    }
 });
