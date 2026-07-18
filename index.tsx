@@ -146,6 +146,7 @@ export default definePlugin({
         id: 1058197096915808396n
     }
     ],
+
     tags: ["Chat", "Utility"],
     searchTerms: ["nitro", "gift", "redeem", "snipe"],
     settings,
